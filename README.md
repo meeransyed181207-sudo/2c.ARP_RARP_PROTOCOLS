@@ -17,9 +17,118 @@ stored.
 5. Map the IP address with its MAC address and return the MAC address to client.
 P
 ## PROGRAM - ARP
+## SERVER
+```
+import socket
+s = socket.socket()
+s.bind(('localhost', 8000))
+s.listen(5)
+print("Server is listening...")
+
+c, addr = s.accept()
+print(f"Connection established with {addr}")
+
+address = {
+    "165.165.80.80": "6A:08:AA:C2",
+    "165.165.79.1": "8A:BC:E3:FA"
+}
+
+while True:
+    ip = c.recv(1024).decode()
+
+    if ip=="exit":  
+        print("Exiting server...")
+        break
+    if not ip:
+        print("No IP received. Closing connection.")
+        break   
+    try:
+        mac = address[ip]  # Get the MAC address for the IP
+        print(f"IP: {ip} -> MAC: {mac}")
+        c.send(mac.encode())  
+    except KeyError:
+        print(f"IP: {ip} not found in ARP table.")
+        c.send("Not Found".encode())
+c.close()
+s.close()
+```
+## CLIENT
+```
+import socket
+c = socket.socket()
+c.connect(('localhost', 8000))
+
+while True:
+    ip = input("Enter IP address to find MAC (or type 'exit' to quit): ")
+
+    if ip.lower() == "exit": 
+        c.send(ip.encode())
+        break
+
+    c.send(ip.encode())
+    mac = c.recv(1024).decode()
+    print(f"MAC Address for {ip}: {mac}")
+c.close()
+```
 ## OUPUT - ARP
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/234503c2-4b3e-48b7-97d4-9fa02327e4ac" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/49637da5-a8ab-479c-a127-41d64b932bbe" />
+
 ## PROGRAM - RARP
+## SERVER 
+```
+import socket
+s = socket.socket()
+s.bind(('localhost', 8000))
+s.listen(5)
+print("Server is listening for RARP requests...")
+c, addr = s.accept()
+print(f"Connection established with {addr}")
+
+rarp_table = {
+    "6A:08:AA:C2": "165.165.80.80",
+    "8A:BC:E3:FA": "165.165.79.1"
+}
+
+while True:
+    mac = c.recv(1024).decode()
+
+    if mac=="exit":
+        print("Exiting server...")
+        break
+
+    if not mac:  
+        break
+
+    try:
+        ip = rarp_table[mac]  
+        print(f"MAC: {mac} -> IP: {ip}")
+        c.send(ip.encode())  
+    except KeyError:
+        print(f"MAC: {mac} not found in RARP table.")
+        c.send("Not Found".encode())
+c.close()
+s.close()
+```
+## CLIENT
+```
+import socket
+c = socket.socket()
+c.connect(('localhost', 8000))
+
+while True:
+    mac = input("Enter MAC address to find IP (or type 'exit' to quit): ")
+    if mac.lower() == "exit":  
+        break
+    c.send(mac.encode())
+    ip = c.recv(1024).decode()
+    print(f"IP Address for {mac}: {ip}")
+c.close()
+```
 ## OUPUT -RARP
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f9b72020-05c3-43b8-87ef-43892d3dd75b" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/27fa44e8-4473-4da4-b123-219922aa22e8" />
+
 ## RESULT
 Thus, the python program for simulating ARP protocols using TCP was successfully 
 executed.
